@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Produção</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 900px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="container bg-white p-6 md:p-10 rounded-xl shadow-lg w-full">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center flex-grow">Calculadora de Produção</h1>
+            <a href="#" id="toggle-factors" class="text-sm text-blue-500 hover:text-blue-700 font-medium whitespace-nowrap ml-4">Ajustar Fatores</a>
+        </div>
+        
+        <div class="mb-6">
+            <label for="us-value" class="block text-sm font-medium text-gray-700">Valor Atual do US (contrato):</label>
+            <input type="number" id="us-value" value="2021.19" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center">
+        </div>
+
+        <!-- Fatores de Cálculo -->
+        <div id="factors-container" class="hidden mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Fatores de Cálculo</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="encarregado-rate" class="block text-sm font-medium text-gray-700">Encarregado por Poda:</label>
+                    <input type="number" id="encarregado-rate" value="0.80" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center">
+                </div>
+                <div>
+                    <label for="podador-rate" class="block text-sm font-medium text-gray-700">Podador por Poda:</label>
+                    <input type="number" id="podador-rate" value="1.00" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center">
+                </div>
+                <div>
+                    <label for="meta25-encarregado" class="block text-sm font-medium text-gray-700">Meta 25 Encarregado:</label>
+                    <input type="number" id="meta25-encarregado" value="150.00" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center">
+                </div>
+                <div>
+                    <label for="meta25-podador" class="block text-sm font-medium text-gray-700">Meta 25 Podador:</label>
+                    <input type="number" id="meta25-podador" value="125.00" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center">
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Inserir Produção</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+                <div class="flex-1 w-full">
+                    <label for="input-us" class="block text-sm font-medium text-gray-700">Produção (US):</label>
+                    <input type="number" id="input-us" placeholder="Ex: 25" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+                <div class="text-gray-500 font-bold">OU</div>
+                <div class="flex-1 w-full">
+                    <label for="input-podas" class="block text-sm font-medium text-gray-700">Quantidade de Podas:</label>
+                    <input type="number" id="input-podas" placeholder="Ex: 900" step="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Dias Trabalhados Podadores</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div class="flex-1 w-full">
+                    <label for="podador1-days" class="block text-sm font-medium text-gray-700">Podador 1:</label>
+                    <input type="number" id="podador1-days" value="1" min="0" step="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+                <div class="flex-1 w-full">
+                    <label for="podador2-days" class="block text-sm font-medium text-gray-700">Podador 2:</label>
+                    <input type="number" id="podador2-days" value="1" min="0" step="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+            </div>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Resultados</h2>
+            <div class="overflow-x-auto shadow-md rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                META ALCANÇADA
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ENCARREGADO
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                PODADOR 1
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                PODADOR 2
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                TOTAL
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr id="result-row" class="hover:bg-gray-50">
+                            <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center" id="meta-label"></td>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700 text-center" id="encarregado-value"></td>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700 text-center" id="podador1-value"></td>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700 text-center" id="podador2-value"></td>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm font-bold text-gray-900 text-center" id="total-value"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="message-box" class="mt-8 text-center text-gray-500 italic hidden">Nenhuma meta alcançada.</div>
+
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputUs = document.getElementById('input-us');
+            const inputPodas = document.getElementById('input-podas');
+            const usValueInput = document.getElementById('us-value');
+            const podador1DaysInput = document.getElementById('podador1-days');
+            const podador2DaysInput = document.getElementById('podador2-days');
+            const toggleFactors = document.getElementById('toggle-factors');
+            const factorsContainer = document.getElementById('factors-container');
+            const encarregadoRateInput = document.getElementById('encarregado-rate');
+            const podadorRateInput = document.getElementById('podador-rate');
+            const meta25EncarregadoInput = document.getElementById('meta25-encarregado');
+            const meta25PodadorInput = document.getElementById('meta25-podador');
+            const resultContainer = document.getElementById('result-container');
+            const messageBox = document.getElementById('message-box');
+
+            const podasPerUs = 27.027; // 1 us = 27.027 podas (1/0.037)
+
+            // Função para formatar o valor como moeda BRL
+            const formatCurrency = (value) => {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(value);
+            };
+
+            const metas = [
+                { us: 25, podas: 25 * podasPerUs, description: "META 25" },
+                { us: 30, podas: 30 * podasPerUs, description: "META 30" },
+                { us: 34, podas: 34 * podasPerUs, extraFraction: 1/4, description: "META 34 + 1/4" },
+                { us: 38, podas: 38 * podasPerUs, extraFraction: 1/3, description: "META 38 + 1/3" },
+                { us: 42, podas: 42 * podasPerUs, extraFraction: 1/2, description: "META 42 + 1/2" }
+            ];
+
+            const calculateValues = () => {
+                const usFloat = parseFloat(inputUs.value);
+                const podasFloat = parseFloat(inputPodas.value);
+                const usContractValue = parseFloat(usValueInput.value);
+                const podador1Days = parseFloat(podador1DaysInput.value);
+                const podador2Days = parseFloat(podador2DaysInput.value);
+                
+                const encarregadoRate = parseFloat(encarregadoRateInput.value);
+                const podadorRate = parseFloat(podadorRateInput.value);
+                const meta25Encarregado = parseFloat(meta25EncarregadoInput.value);
+                const meta25Podador = parseFloat(meta25PodadorInput.value);
+
+                let metaAlcancada = null;
+                let podasTotal = 0;
+
+                if (!isNaN(usFloat)) {
+                    podasTotal = usFloat * podasPerUs;
+                } else if (!isNaN(podasFloat)) {
+                    podasTotal = podasFloat;
+                } else {
+                    resultContainer.classList.add('hidden');
+                    messageBox.classList.add('hidden');
+                    return;
+                }
+
+                // Encontrar a meta alcançada
+                for (let i = metas.length - 1; i >= 0; i--) {
+                    if (podasTotal >= metas[i].podas) {
+                        metaAlcancada = metas[i];
+                        break;
+                    }
+                }
+                
+                if (!metaAlcancada && podasTotal > 0) {
+                     metaAlcancada = metas[0];
+                } else if (podasTotal === 0) {
+                    resultContainer.classList.add('hidden');
+                    messageBox.classList.add('hidden');
+                    return;
+                }
+
+                if (!metaAlcancada) {
+                    resultContainer.classList.add('hidden');
+                    messageBox.classList.remove('hidden');
+                    return;
+                }
+
+                resultContainer.classList.remove('hidden');
+                messageBox.classList.add('hidden');
+
+                const metaLabel = document.getElementById('meta-label');
+                const encarregadoValue = document.getElementById('encarregado-value');
+                const podador1Value = document.getElementById('podador1-value');
+                const podador2Value = document.getElementById('podador2-value');
+                const totalValue = document.getElementById('total-value');
+
+                let encarregado, podador1, podador2, total;
+                const totalDays = podador1Days + podador2Days;
+                const podador1Ratio = totalDays > 0 ? podador1Days / totalDays : 0.5;
+                const podador2Ratio = totalDays > 0 ? podador2Days / totalDays : 0.5;
+
+
+                // CÁLCULOS
+                if (podasTotal < metas[0].podas) {
+                    // Produção abaixo da meta 25
+                    metaLabel.textContent = 'Não alcançou a Meta 25';
+                    encarregado = 0;
+                    podador1 = 0;
+                    podador2 = 0;
+                    total = 0;
+                } else if (podasTotal >= metas[0].podas && podasTotal < metas[1].podas) {
+                    // Produção entre Meta 25 e Meta 30
+                    metaLabel.textContent = 'Meta 25';
+                    encarregado = meta25Encarregado;
+                    podador1 = meta25Podador * podador1Ratio * 2;
+                    podador2 = meta25Podador * podador2Ratio * 2;
+                    total = encarregado + podador1 + podador2;
+                } else {
+                    let baseEncarregado = 0;
+                    let basePodador1 = 0;
+                    let basePodador2 = 0;
+                    let bonusTotal = 0;
+
+                    if (podasTotal >= metas[4].podas) { // Meta 42
+                        metaLabel.textContent = metas[4].description;
+                        baseEncarregado = podasTotal * encarregadoRate;
+                        basePodador1 = podasTotal * podadorRate * podador1Ratio;
+                        basePodador2 = podasTotal * podadorRate * podador2Ratio;
+                        bonusTotal = usContractValue * metas[4].extraFraction;
+
+                    } else if (podasTotal >= metas[3].podas) { // Meta 38
+                        metaLabel.textContent = metas[3].description;
+                        baseEncarregado = podasTotal * encarregadoRate;
+                        basePodador1 = podasTotal * podadorRate * podador1Ratio;
+                        basePodador2 = podasTotal * podadorRate * podador2Ratio;
+                        bonusTotal = usContractValue * metas[3].extraFraction;
+
+                    } else if (podasTotal >= metas[2].podas) { // Meta 34
+                        metaLabel.textContent = metas[2].description;
+                        baseEncarregado = podasTotal * encarregadoRate;
+                        basePodador1 = podasTotal * podadorRate * podador1Ratio;
+                        basePodador2 = podasTotal * podadorRate * podador2Ratio;
+                        bonusTotal = usContractValue * metas[2].extraFraction;
+
+                    } else { // Meta 30
+                        metaLabel.textContent = metas[1].description;
+                        baseEncarregado = podasTotal * encarregadoRate;
+                        basePodador1 = podasTotal * podadorRate * podador1Ratio;
+                        basePodador2 = podasTotal * podadorRate * podador2Ratio;
+                        bonusTotal = 0;
+                    }
+                    
+                    const bonusPerPerson = bonusTotal > 0 ? bonusTotal / 3 : 0;
+                    encarregado = baseEncarregado + bonusPerPerson;
+                    podador1 = basePodador1 + bonusPerPerson;
+                    podador2 = basePodador2 + bonusPerPerson;
+                    total = encarregado + podador1 + podador2;
+                }
+
+                encarregadoValue.textContent = formatCurrency(encarregado);
+                podador1Value.textContent = formatCurrency(podador1);
+                podador2Value.textContent = formatCurrency(podador2);
+                totalValue.textContent = formatCurrency(total);
+            };
+            
+            toggleFactors.addEventListener('click', (e) => {
+                e.preventDefault();
+                factorsContainer.classList.toggle('hidden');
+            });
+
+
+            inputUs.addEventListener('input', (e) => {
+                if (e.target.value !== "") {
+                    inputPodas.value = "";
+                }
+                calculateValues();
+            });
+
+            inputPodas.addEventListener('input', (e) => {
+                if (e.target.value !== "") {
+                    inputUs.value = "";
+                }
+                calculateValues();
+            });
+            
+            podador1DaysInput.addEventListener('input', calculateValues);
+            podador2DaysInput.addEventListener('input', calculateValues);
+            usValueInput.addEventListener('input', calculateValues);
+            encarregadoRateInput.addEventListener('input', calculateValues);
+            podadorRateInput.addEventListener('input', calculateValues);
+            meta25EncarregadoInput.addEventListener('input', calculateValues);
+            meta25PodadorInput.addEventListener('input', calculateValues);
+        });
+    </script>
+
+</body>
+</html>
